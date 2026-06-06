@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recognize Face - Face Recognition System</title>
+    <link rel="stylesheet" href="static/style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span>👤</span> FaceSys
+            </div>
+            <ul class="nav-links">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="register.html" class="nav-link">
+                        Register Face
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="recognize.html" class="nav-link active">
+                        Recognize Face
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="logs.html" class="nav-link">
+                        View Logs
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Face Recognition</h1>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                    <span>🌙</span>
+                </button>
+            </div>
+
+            <div class="card" style="max-width: 800px; margin: 0 auto;">
+                <div id="message" class="message hidden"></div>
+
+                <!-- Step 1: QR Scan -->
+                <div id="qrScanStep">
+                    <h2
+                        style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                        Step 1: Scan QR Code</h2>
+                    <div class="qr-scanner-container">
+                        <video id="qr-video" autoplay playsinline></video>
+                        <div id="qrResult" class="qr-result hidden"></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button type="button" id="startQrScan" class="btn btn-primary">
+                            <span>🔍</span> Start QR Scanner
+                        </button>
+                        <button type="button" id="stopQrScan" class="btn btn-secondary hidden">Stop Scanner</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Face Capture -->
+                <div id="faceCaptureStep" class="hidden">
+                    <h2
+                        style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                        Step 2: Verify Identity</h2>
+                    <div class="camera-container">
+                        <video id="videoPreview" autoplay playsinline></video>
+                        <canvas id="canvasPreview" class="hidden"></canvas>
+
+                        <div id="facePreviewContainer" class="hidden" style="margin-top: 1rem;">
+                            <p style="margin-bottom: 0.5rem; font-weight: 500;">Preview:</p>
+                            <img id="facePreview"
+                                style="width: 100%; border-radius: 10px; border: 2px solid var(--accent-color);">
+                        </div>
+
+                        <div class="camera-controls" style="margin-top: 1.5rem;">
+                            <button type="button" id="captureFaceBtn" class="btn btn-primary">
+                                <span>📸</span> Capture Face
+                            </button>
+                            <button type="button" id="retakeFaceBtn" class="btn btn-secondary hidden">
+                                <span>🔄</span> Retake
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" id="recognizeBtn" class="btn btn-primary"
+                        style="width: 100%; margin-top: 20px; background-color: var(--success-color);" disabled>
+                        <span>✅</span> Verify Identity
+                    </button>
+                </div>
+
+                <div id="loading" class="loading hidden">
+                    <p>Processing...</p>
+                </div>
+
+                <!-- Result & User Info -->
+                <div id="resultContainer" class="hidden">
+                    <div id="resultMessage" class="message"></div>
+                    <div id="userInfo"
+                        style="margin-top: 20px; padding: 20px; background-color: var(--bg-primary); border-radius: 10px; border: 1px solid var(--border-color);">
+                    </div>
+                </div>
+
+                <!-- Step 3: Food Capture -->
+                <div id="foodCaptureStep" class="hidden"
+                    style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                    <h2 style="margin-bottom: 1rem;">Step 3: Analyze Meal</h2>
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">
+                        Capture an image of the food for nutrition analysis
+                    </p>
+                    <div class="camera-container">
+                        <video id="foodVideo" autoplay playsinline></video>
+                        <canvas id="foodCanvas" class="hidden"></canvas>
+
+                        <div id="foodPreviewContainer" class="hidden" style="margin-top: 1rem;">
+                            <p style="margin-bottom: 0.5rem; font-weight: 500;">Preview:</p>
+                            <img id="foodPreview"
+                                style="width: 100%; border-radius: 10px; border: 2px solid var(--accent-color);">
+                        </div>
+
+                        <div class="camera-controls" style="margin-top: 1.5rem;">
+                            <button type="button" id="captureFoodBtn" class="btn btn-primary">
+                                <span>🍽️</span> Capture Food
+                            </button>
+                            <button type="button" id="retakeFoodBtn" class="btn btn-secondary hidden">
+                                <span>🔄</span> Retake
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" id="analyzeFoodBtn" class="btn btn-primary"
+                        style="width: 100%; margin-top: 20px; background-color: var(--success-color);" disabled>
+                        <span>🧪</span> Analyze Nutrition
+                    </button>
+                </div>
+
+                <!-- Nutrition Result -->
+                <div id="nutritionResult" class="hidden"
+                    style="margin-top: 30px; padding: 20px; background-color: var(--bg-primary); border-radius: 10px; border: 1px solid var(--border-color);">
+                    <h3 style="margin-bottom: 1rem; color: var(--accent-color);">Nutrition Analysis</h3>
+                    <div id="nutritionData"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="static/dashboard.js"></script>
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+
+        let qrStream = null;
+        let faceStream = null;
+        let foodStream = null;
+        let scannedUserId = null;
+        let capturedFaceImage = null;
+        let capturedFoodImage = null;
+        let qrScanning = false;
+
+        const qrVideo = document.getElementById('qr-video');
+        const videoPreview = document.getElementById('videoPreview');
+        const foodVideo = document.getElementById('foodVideo');
+        const canvasPreview = document.getElementById('canvasPreview');
+        const foodCanvas = document.getElementById('foodCanvas');
+        const startQrScanBtn = document.getElementById('startQrScan');
+        const stopQrScanBtn = document.getElementById('stopQrScan');
+        const qrResult = document.getElementById('qrResult');
+        const qrScanStep = document.getElementById('qrScanStep');
+        const faceCaptureStep = document.getElementById('faceCaptureStep');
+        const foodCaptureStep = document.getElementById('foodCaptureStep');
+        const captureFaceBtn = document.getElementById('captureFaceBtn');
+        const retakeFaceBtn = document.getElementById('retakeFaceBtn');
+        const captureFoodBtn = document.getElementById('captureFoodBtn');
+        const retakeFoodBtn = document.getElementById('retakeFoodBtn');
+        const facePreview = document.getElementById('facePreview');
+        const foodPreview = document.getElementById('foodPreview');
+        const facePreviewContainer = document.getElementById('facePreviewContainer');
+        const foodPreviewContainer = document.getElementById('foodPreviewContainer');
+        const recognizeBtn = document.getElementById('recognizeBtn');
+        const analyzeFoodBtn = document.getElementById('analyzeFoodBtn');
+        const loading = document.getElementById('loading');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultMessage = document.getElementById('resultMessage');
+        const userInfo = document.getElementById('userInfo');
+        const nutritionResult = document.getElementById('nutritionResult');
+        const nutritionData = document.getElementById('nutritionData');
+        const message = document.getElementById('message');
+
+        // QR Code Scanning
+        async function startQrScanner() {
+            try {
+                qrStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                });
+                qrVideo.srcObject = qrStream;
+                startQrScanBtn.classList.add('hidden');
+                stopQrScanBtn.classList.remove('hidden');
+                qrResult.textContent = 'Position QR code in front of camera...';
+                qrResult.classList.remove('hidden');
+
+                // Wait for video to be ready before starting scan
+                qrVideo.addEventListener('loadedmetadata', () => {
+                    qrScanning = true;
+                    scanQRCode();
+                }, { once: true });
+            } catch (error) {
+                showMessage('Error accessing camera: ' + error.message, 'error');
+                console.error('Camera error:', error);
+            }
+        }
+
+        function stopQrScanner() {
+            qrScanning = false;
+            if (qrStream) {
+                qrStream.getTracks().forEach(track => track.stop());
+                qrStream = null;
+            }
+            startQrScanBtn.classList.remove('hidden');
+            stopQrScanBtn.classList.add('hidden');
+            qrResult.classList.add('hidden');
+        }
+
+        function scanQRCode() {
+            if (!qrScanning) return;
+
+            // Check if video is ready and has dimensions
+            if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA && qrVideo.videoWidth > 0 && qrVideo.videoHeight > 0) {
+                const canvas = document.createElement('canvas');
+                canvas.width = qrVideo.videoWidth;
+                canvas.height = qrVideo.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                if (code) {
+                    scannedUserId = code.data;
+                    qrResult.textContent = `✓ QR Code detected: ${scannedUserId.substring(0, 8)}...`;
+                    qrResult.style.background = 'rgba(16, 185, 129, 0.1)';
+                    qrResult.style.color = 'var(--success-color)';
+                    stopQrScanner();
+
+                    // Move to face capture step after a short delay
+                    setTimeout(() => {
+                        qrScanStep.classList.add('hidden');
+                        faceCaptureStep.classList.remove('hidden');
+                        startFaceCamera();
+                    }, 1500);
+                    return;
+                } else {
+                    // Update status to show scanning
+                    if (qrResult.textContent === 'Position QR code in front of camera...' ||
+                        qrResult.textContent.includes('Scanning')) {
+                        qrResult.textContent = 'Scanning for QR code...';
+                        qrResult.style.background = 'rgba(255, 193, 7, 0.1)';
+                        qrResult.style.color = '#856404';
+                    }
+                }
+            }
+
+            // Continue scanning
+            requestAnimationFrame(scanQRCode);
+        }
+
+        startQrScanBtn.addEventListener('click', startQrScanner);
+        stopQrScanBtn.addEventListener('click', stopQrScanner);
+
+        // Face Capture
+        async function startFaceCamera() {
+            try {
+                faceStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'user',
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                });
+                videoPreview.srcObject = faceStream;
+                videoPreview.classList.remove('hidden');
+            } catch (error) {
+                showMessage('Error accessing camera: ' + error.message, 'error');
+                console.error('Camera error:', error);
+            }
+        }
+
+        captureFaceBtn.addEventListener('click', () => {
+            canvasPreview.width = videoPreview.videoWidth;
+            canvasPreview.height = videoPreview.videoHeight;
+            canvasPreview.getContext('2d').drawImage(videoPreview, 0, 0);
+
+            capturedFaceImage = canvasPreview.toDataURL('image/png');
+            facePreview.src = capturedFaceImage;
+
+            videoPreview.classList.add('hidden');
+            facePreviewContainer.classList.remove('hidden');
+            captureFaceBtn.classList.add('hidden');
+            retakeFaceBtn.classList.remove('hidden');
+            recognizeBtn.disabled = false;
+
+            // Stop camera stream
+            if (faceStream) {
+                faceStream.getTracks().forEach(track => track.stop());
+            }
+        });
+
+        retakeFaceBtn.addEventListener('click', () => {
+            capturedFaceImage = null;
+            facePreviewContainer.classList.add('hidden');
+            videoPreview.classList.remove('hidden');
+            captureFaceBtn.classList.remove('hidden');
+            retakeFaceBtn.classList.add('hidden');
+            recognizeBtn.disabled = true;
+            startFaceCamera();
+        });
+
+        // Recognition
+        recognizeBtn.addEventListener('click', async () => {
+            if (!scannedUserId || !capturedFaceImage) {
+                showMessage('Please complete both steps', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('user_id', scannedUserId);
+
+            // Convert data URL to blob
+            const blob = await (await fetch(capturedFaceImage)).blob();
+            formData.append('face_image', blob, 'face.png');
+
+            loading.classList.remove('hidden');
+            faceCaptureStep.classList.add('hidden');
+            message.classList.add('hidden');
+            resultContainer.classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/recognize`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                loading.classList.add('hidden');
+                resultContainer.classList.remove('hidden');
+
+                if (data.match) {
+                    resultMessage.textContent = '✓ Face recognized successfully!';
+                    resultMessage.className = 'message success';
+
+                    const user = data.user_data;
+                    userInfo.innerHTML = `
+                        <h3 style="margin-bottom: 0.5rem; color: var(--accent-color);">Student Details</h3>
+                        <p><strong>Name:</strong> ${user.name}</p>
+                        <p><strong>Class:</strong> ${user.class}</p>
+                        <p><strong>Roll Number:</strong> ${user.roll}</p>
+                        ${user.aadhar ? `<p><strong>Aadhar:</strong> ${user.aadhar}</p>` : ''}
+                    `;
+
+                    // Show food capture step after successful recognition
+                    setTimeout(() => {
+                        foodCaptureStep.classList.remove('hidden'); // Show food step underneath
+                        startFoodCamera();
+                        // Optional: Scroll to food capture step
+                        foodCaptureStep.scrollIntoView({ behavior: 'smooth' });
+                    }, 1000);
+                } else {
+                    resultMessage.textContent = '✗ Face does not match. Please try again.';
+                    resultMessage.className = 'message error';
+                    userInfo.innerHTML = '<button onclick="location.reload()" class="btn btn-secondary">Try Again</button>';
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                faceCaptureStep.classList.remove('hidden');
+                loading.classList.add('hidden');
+            }
+        });
+
+        // Food Capture
+        async function startFoodCamera() {
+            try {
+                foodStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                });
+                foodVideo.srcObject = foodStream;
+                foodVideo.classList.remove('hidden');
+            } catch (error) {
+                showMessage('Error accessing camera: ' + error.message, 'error');
+                console.error('Camera error:', error);
+            }
+        }
+
+        captureFoodBtn.addEventListener('click', () => {
+            foodCanvas.width = foodVideo.videoWidth;
+            foodCanvas.height = foodVideo.videoHeight;
+            foodCanvas.getContext('2d').drawImage(foodVideo, 0, 0);
+
+            capturedFoodImage = foodCanvas.toDataURL('image/png');
+            foodPreview.src = capturedFoodImage;
+
+            foodVideo.classList.add('hidden');
+            foodPreviewContainer.classList.remove('hidden');
+            captureFoodBtn.classList.add('hidden');
+            retakeFoodBtn.classList.remove('hidden');
+            analyzeFoodBtn.disabled = false;
+
+            // Stop camera stream
+            if (foodStream) {
+                foodStream.getTracks().forEach(track => track.stop());
+            }
+        });
+
+        retakeFoodBtn.addEventListener('click', () => {
+            capturedFoodImage = null;
+            foodPreviewContainer.classList.add('hidden');
+            foodVideo.classList.remove('hidden');
+            captureFoodBtn.classList.remove('hidden');
+            retakeFoodBtn.classList.add('hidden');
+            analyzeFoodBtn.disabled = true;
+            startFoodCamera();
+        });
+
+        // Food Analysis
+        analyzeFoodBtn.addEventListener('click', async () => {
+            if (!scannedUserId || !capturedFoodImage) {
+                showMessage('Please capture food image first', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('user_id', scannedUserId);
+
+            // Convert data URL to blob
+            const blob = await (await fetch(capturedFoodImage)).blob();
+            formData.append('food_image', blob, 'food.png');
+
+            loading.classList.remove('hidden');
+            // foodCaptureStep.classList.add('hidden'); // Keep it visible for context
+            message.classList.add('hidden');
+            nutritionResult.classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/analyze-food`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                loading.classList.add('hidden');
+                nutritionResult.classList.remove('hidden');
+                nutritionResult.scrollIntoView({ behavior: 'smooth' });
+
+                if (data.success) {
+                    const nutrition = data.nutrition_data;
+
+                    // Check if all values are N/A (might indicate API key issue)
+                    const allNA = Object.values(nutrition).every(val => val === 'N/A' || val === null || val === undefined);
+
+                    nutritionData.innerHTML = `
+                        <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 0.5rem; text-align: center; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; color: var(--text-secondary);">Carbohydrates</div>
+                            <div style="font-size: 1.25rem; font-weight: 700;">${nutrition.carbohydrates || 'N/A'}</div>
+                        </div>
+                        <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 0.5rem; text-align: center; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; color: var(--text-secondary);">Proteins</div>
+                            <div style="font-size: 1.25rem; font-weight: 700;">${nutrition.proteins || 'N/A'}</div>
+                        </div>
+                        <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 0.5rem; text-align: center; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; color: var(--text-secondary);">Vitamins</div>
+                            <div style="font-size: 1.25rem; font-weight: 700;">${nutrition.vitamins || 'N/A'}</div>
+                        </div>
+                        <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 0.5rem; text-align: center; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; color: var(--text-secondary);">Fat</div>
+                            <div style="font-size: 1.25rem; font-weight: 700;">${nutrition.fat || 'N/A'}</div>
+                        </div>
+                        <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 0.5rem; text-align: center; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; color: var(--text-secondary);">Calories</div>
+                            <div style="font-size: 1.25rem; font-weight: 700;">${nutrition.calories || 'N/A'}</div>
+                        </div>
+                    `;
+
+                    if (data.warning) {
+                        showMessage('⚠ ' + data.warning, 'error');
+                    } else if (allNA) {
+                        showMessage('⚠ Food analyzed but nutrition data unavailable. Check Gemini API key.', 'error');
+                    } else {
+                        showMessage('✓ Food analyzed and nutrition data saved!', 'success');
+                    }
+                } else {
+                    showMessage('Failed to analyze food: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                loading.classList.add('hidden');
+            }
+        });
+
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.classList.remove('hidden');
+            message.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+
+</html>

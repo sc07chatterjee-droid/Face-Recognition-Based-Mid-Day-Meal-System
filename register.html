@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Face - Face Recognition System</title>
+    <link rel="stylesheet" href="static/style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span>👤</span> FaceSys
+            </div>
+            <ul class="nav-links">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="register.html" class="nav-link active">
+                        Register Face
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="recognize.html" class="nav-link">
+                        Recognize Face
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="logs.html" class="nav-link">
+                        View Logs
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Register New Face</h1>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                    <span>🌙</span>
+                </button>
+            </div>
+
+            <div class="card" style="max-width: 800px; margin: 0 auto;">
+                <div id="message" class="message hidden"></div>
+
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" name="name" required placeholder="Enter full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="class">Class *</label>
+                        <input type="text" id="class" name="class" required placeholder="Enter class">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="roll">Roll Number *</label>
+                        <input type="text" id="roll" name="roll" required placeholder="Enter roll number">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="aadhar">Aadhar Number (Optional)</label>
+                        <input type="text" id="aadhar" name="aadhar" placeholder="Enter Aadhar number">
+                    </div>
+
+                    <div class="camera-container">
+                        <h2 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 1.25rem;">Capture Your
+                            Face</h2>
+                        <video id="video" autoplay playsinline></video>
+                        <canvas id="canvas" class="hidden"></canvas>
+
+                        <div id="previewContainer" class="hidden" style="margin-top: 1rem;">
+                            <p style="margin-bottom: 0.5rem; font-weight: 500;">Preview:</p>
+                            <img id="preview"
+                                style="width: 100%; border-radius: 10px; border: 2px solid var(--accent-color);">
+                        </div>
+
+                        <div class="camera-controls" style="margin-top: 1.5rem;">
+                            <button type="button" id="captureBtn" class="btn btn-primary">
+                                <span>📸</span> Capture Photo
+                            </button>
+                            <button type="button" id="retakeBtn" class="btn btn-secondary hidden">
+                                <span>🔄</span> Retake
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn btn-primary"
+                        style="width: 100%; margin-top: 20px; background-color: var(--success-color);" disabled>
+                        Register Student
+                    </button>
+                </form>
+
+                <div id="loading" class="loading hidden">
+                    <p>Processing registration...</p>
+                </div>
+
+                <div id="qrCodeContainer" class="qr-code-container hidden">
+                    <h2 style="color: var(--success-color); margin-bottom: 1rem;">Registration Successful!</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px;">Your QR code has been generated.
+                        Please download it.</p>
+                    <img id="qrCodeImage" src="" alt="QR Code"
+                        style="max-width: 250px; border: 1px solid var(--border-color); padding: 1rem; border-radius: 0.5rem; background: white;">
+                    <div style="margin-top: 20px; display: flex; gap: 1rem; justify-content: center;">
+                        <a id="downloadQr" class="btn btn-primary" download>Download QR Code</a>
+                        <button onclick="location.reload()" class="btn btn-secondary">Register Another</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="static/dashboard.js"></script>
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+
+        let stream = null;
+        let capturedImage = null;
+
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const preview = document.getElementById('preview');
+        const previewContainer = document.getElementById('previewContainer');
+        const submitBtn = document.getElementById('submitBtn');
+        const registerForm = document.getElementById('registerForm');
+        const loading = document.getElementById('loading');
+        const qrCodeContainer = document.getElementById('qrCodeContainer');
+        const qrCodeImage = document.getElementById('qrCodeImage');
+        const downloadQr = document.getElementById('downloadQr');
+        const message = document.getElementById('message');
+
+        // Start camera
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'user',
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                });
+                video.srcObject = stream;
+                video.classList.remove('hidden');
+            } catch (error) {
+                showMessage('Error accessing camera: ' + error.message, 'error');
+                console.error('Camera error:', error);
+            }
+        }
+
+        // Capture photo
+        captureBtn.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            capturedImage = canvas.toDataURL('image/png');
+            preview.src = capturedImage;
+
+            video.classList.add('hidden');
+            previewContainer.classList.remove('hidden');
+            captureBtn.classList.add('hidden');
+            retakeBtn.classList.remove('hidden');
+            submitBtn.disabled = false;
+        });
+
+        // Retake photo
+        retakeBtn.addEventListener('click', () => {
+            capturedImage = null;
+            previewContainer.classList.add('hidden');
+            video.classList.remove('hidden');
+            captureBtn.classList.remove('hidden');
+            retakeBtn.classList.add('hidden');
+            submitBtn.disabled = true;
+        });
+
+        // Handle form submission
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!capturedImage) {
+                showMessage('Please capture your face first', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('name').value);
+            formData.append('class_name', document.getElementById('class').value);
+            formData.append('roll', document.getElementById('roll').value);
+            formData.append('aadhar', document.getElementById('aadhar').value || '');
+
+            // Convert data URL to blob
+            const blob = await (await fetch(capturedImage)).blob();
+            formData.append('face_image', blob, 'face.png');
+
+            loading.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            message.classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/register`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Display QR code
+                    qrCodeImage.src = `${API_BASE_URL}${data.qr_path}`;
+                    downloadQr.href = `${API_BASE_URL}${data.qr_path}`;
+                    qrCodeContainer.classList.remove('hidden');
+                    showMessage('Registration successful!', 'success');
+                } else {
+                    showMessage(data.message || 'Registration failed', 'error');
+                    registerForm.classList.remove('hidden');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                registerForm.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        });
+
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.classList.remove('hidden');
+        }
+
+        // Initialize camera on page load
+        startCamera();
+    </script>
+</body>
+
+</html>

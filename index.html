@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Face Recognition System</title>
+    <link rel="stylesheet" href="static/style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span>👤</span> FaceSys
+            </div>
+            <ul class="nav-links">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="register.html" class="nav-link">
+                        Register Face
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="recognize.html" class="nav-link">
+                        Recognize Face
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="logs.html" class="nav-link">
+                        View Logs
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Dashboard</h1>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                    <span>🌙</span>
+                </button>
+            </div>
+
+            <div class="card">
+                <h2>Welcome to Face Recognition System</h2>
+                <p style="color: var(--text-secondary); margin-top: 1rem; margin-bottom: 2rem;">
+                    Select an action from the sidebar or use the quick links below.
+                </p>
+
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="register.html" class="btn btn-primary">
+                        <span>➕</span> Register New Face
+                    </a>
+                    <a href="recognize.html" class="btn btn-primary" style="background-color: var(--success-color);">
+                        <span>📷</span> Start Recognition
+                    </a>
+                    <a href="logs.html" class="btn btn-secondary">
+                        <span>📊</span> View Logs
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="static/dashboard.js"></script>
+</body>
+
+</html>
