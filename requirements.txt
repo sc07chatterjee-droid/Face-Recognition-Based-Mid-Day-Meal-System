@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+face_recognition
+qrcode[pil]
+numpy
+python-multipart
+Pillow
+google-generativeai
+python-dotenv
+openpyxl
+
